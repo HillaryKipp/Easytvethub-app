@@ -1,0 +1,67 @@
+import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+
+/// Displays `assets/logo.jpg` when present, or a clean EasyTVET Hub monogram fallback.
+class BrandLogo extends StatelessWidget {
+  final double height;
+  final bool showWordmark;
+
+  const BrandLogo({
+    super.key,
+    this.height = 34,
+    this.showWordmark = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadii.sm),
+          child: Image.asset(
+            'assets/logo.jpg',
+            height: height,
+            width: height,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              height: height,
+              width: height,
+              decoration: BoxDecoration(
+                gradient: AppColors.heroGradient,
+                borderRadius: BorderRadius.circular(AppRadii.sm),
+              ),
+              child: const Icon(
+                LucideIcons.graduationCap,
+                color: AppColors.white,
+                size: 18,
+              ),
+            ),
+          ),
+        ),
+        if (showWordmark) ...[
+          const SizedBox(width: 10),
+          RichText(
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.4,
+                color: AppColors.ink,
+              ),
+              children: [
+                TextSpan(text: 'EasyTVET '),
+                TextSpan(
+                  text: 'Hub',
+                  style: TextStyle(color: AppColors.purple),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
