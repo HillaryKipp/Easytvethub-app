@@ -19,24 +19,29 @@ class BrandLogo extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-          child: Image.asset(
-            'assets/logo.jpg',
-            height: height,
-            width: height,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              height: height,
-              width: height,
-              decoration: BoxDecoration(
-                gradient: AppColors.heroGradient,
-                borderRadius: BorderRadius.circular(AppRadii.sm),
-              ),
-              child: const Icon(
-                LucideIcons.graduationCap,
-                color: AppColors.white,
-                size: 18,
+        Container(
+          height: height,
+          width: height,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppRadii.sm),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadii.sm - 2),
+            child: Image.asset(
+              'assets/easytvethub.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.heroGradient,
+                  borderRadius: BorderRadius.circular(AppRadii.sm - 2),
+                ),
+                child: const Icon(
+                  LucideIcons.graduationCap,
+                  color: AppColors.white,
+                  size: 18,
+                ),
               ),
             ),
           ),

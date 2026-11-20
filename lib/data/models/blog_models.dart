@@ -1,3 +1,5 @@
+import '../../core/config/env.dart';
+
 enum ArticleCategory {
   examNews('exam_news', 'Exam News'),
   revisionGuide('revision_guide', 'Revision Guide'),
@@ -35,7 +37,7 @@ class Author {
         id: json['id'] as String,
         name: json['name'] as String? ?? 'EasyTVET Editorial',
         slug: json['slug'] as String? ?? 'editorial',
-        role: json['role'] as String?,
+        role: json['role_title'] as String? ?? json['role'] as String?,
         bio: json['bio'] as String?,
         avatarUrl: json['avatar_url'] as String?,
         isVerified: json['is_verified'] as bool? ?? true,
@@ -75,27 +77,37 @@ class Article {
     this.author,
   });
 
-  factory Article.fromJson(Map<String, dynamic> json) => Article(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        slug: json['slug'] as String,
-        excerpt: json['excerpt'] as String?,
-        content: json['content'] as String? ?? '',
-        coverImageUrl:
-            json['cover_image'] as String? ??
-            json['cover_image_url'] as String?,
-        category: ArticleCategory.fromDb(json['category'] as String?),
-        readingTimeMinutes: (json['reading_time_minutes'] as num?)?.toInt() ??
-            (json['reading_time'] as num?)?.toInt(),
-        sourceName: json['source_name'] as String?,
-        sourceUrl: json['source_url'] as String?,
-        published: json['published'] as bool? ?? true,
-        publishedAt: DateTime.tryParse(json['published_at'] as String? ?? ''),
-        updatedAt:
-            DateTime.tryParse(json['updated_at'] as String? ?? '') ??
-            DateTime.now(),
-        author: json['author'] is Map<String, dynamic>
-            ? Author.fromJson(json['author'] as Map<String, dynamic>)
-            : null,
-      );
+  factory Article.fromJson(Map<String, dynamic> json) {
+    final rawImage =
+        (json['featured_image_url'] as String? ??
+                json['cover_image_url'] as String? ??
+                json['cover_image'] as String?)
+            ?.trim();
+    final resolvedImage = rawImage == null || rawImage.isEmpty
+        ? null
+        : (rawImage.startsWith('/') ? Env.canonicalUrl(rawImage) : rawImage);
+
+    return Article(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      slug: json['slug'] as String,
+      excerpt: json['excerpt'] as String?,
+      content: json['content'] as String? ?? '',
+      coverImageUrl: resolvedImage,
+      category: ArticleCategory.fromDb(json['category'] as String?),
+      readingTimeMinutes:
+          (json['reading_time_minutes'] as num?)?.toInt() ??
+          (json['reading_time'] as num?)?.toInt(),
+      sourceName: json['source_name'] as String?,
+      sourceUrl: json['source_url'] as String?,
+      published: json['published'] as bool? ?? true,
+      publishedAt: DateTime.tryParse(json['published_at'] as String? ?? ''),
+      updatedAt:
+          DateTime.tryParse(json['updated_at'] as String? ?? '') ??
+          DateTime.now(),
+      author: json['author'] is Map<String, dynamic>
+          ? Author.fromJson(json['author'] as Map<String, dynamic>)
+          : null,
+    );
+  }
 }
