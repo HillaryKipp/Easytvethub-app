@@ -1,54 +1,143 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'brand_logo.dart';
 
-class AppShell extends StatelessWidget {
-  final StatefulNavigationShell navigationShell;
+class AppShell extends StatefulWidget {
+  final Widget child;
+  final String currentLocation;
+  final GlobalKey<NavigatorState> shellNavigatorKey;
 
-  const AppShell({super.key, required this.navigationShell});
+  const AppShell({
+    super.key,
+    required this.child,
+    required this.currentLocation,
+    required this.shellNavigatorKey,
+  });
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  DateTime? _lastBackPress;
+
+  static const _tabRoutes = [
+    '/',
+    '/tab/modular',
+    '/tab/non-modular',
+    '/tab/knec',
+    '/saved',
+  ];
+
+  int _selectedIndex(String location) {
+    final path = location.toLowerCase();
+    if (path == '/saved' || path.startsWith('/saved/')) {
+      return 4;
+    }
+    if (path == '/tab/knec' || path.contains('knec')) {
+      return 3;
+    }
+    if (path == '/tab/non-modular' || path.contains('non-modular')) {
+      return 2;
+    }
+    if (path == '/tab/modular' || path.contains('modular')) {
+      return 1;
+    }
+    return 0;
+  }
+
+  void _handleBackNavigation() {
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      _scaffoldKey.currentState!.closeDrawer();
+      return;
+    }
+
+    final shellNav = widget.shellNavigatorKey.currentState;
+    if (shellNav != null && shellNav.canPop()) {
+      shellNav.pop();
+      return;
+    }
+
+    if (widget.currentLocation != '/') {
+      context.go('/');
+      return;
+    }
+
+    final now = DateTime.now();
+    if (_lastBackPress == null ||
+        now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
+      _lastBackPress = now;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Press back again to exit EasyTVET Hub'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return;
+    }
+
+    SystemNavigator.pop();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: const AppUtilityDrawer(),
-      body: navigationShell,
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.line)),
-        ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) {
-            navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            );
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(LucideIcons.house),
-              selectedIcon: Icon(LucideIcons.house),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(LucideIcons.search),
-              selectedIcon: Icon(LucideIcons.search),
-              label: 'Search',
-            ),
-            NavigationDestination(
-              icon: Icon(LucideIcons.bookOpen),
-              selectedIcon: Icon(LucideIcons.bookOpen),
-              label: 'Blog',
-            ),
-            NavigationDestination(
-              icon: Icon(LucideIcons.download),
-              selectedIcon: Icon(LucideIcons.download),
-              label: 'Saved',
-            ),
-          ],
+    final selectedIndex = _selectedIndex(widget.currentLocation);
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBackNavigation();
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const AppUtilityDrawer(),
+        body: widget.child,
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: AppColors.line)),
+          ),
+          child: NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) {
+              context.go(_tabRoutes[index]);
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(LucideIcons.house),
+                selectedIcon: Icon(LucideIcons.house),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(LucideIcons.layers),
+                selectedIcon: Icon(LucideIcons.layers),
+                label: 'Modular',
+              ),
+              NavigationDestination(
+                icon: Icon(LucideIcons.bookMarked),
+                selectedIcon: Icon(LucideIcons.bookMarked),
+                label: 'Non Modular',
+              ),
+              NavigationDestination(
+                icon: Icon(LucideIcons.award),
+                selectedIcon: Icon(LucideIcons.award),
+                label: 'KNEC',
+              ),
+              NavigationDestination(
+                icon: Icon(LucideIcons.download),
+                selectedIcon: Icon(LucideIcons.download),
+                label: 'Saved',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -72,12 +161,13 @@ class AppUtilityDrawer extends StatelessWidget {
                 gradient: AppColors.heroGradient,
               ),
               child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  BrandLogo(height: 36, showWordmark: false),
-                  SizedBox(height: 12),
+                  BrandLogo(height: 44, showWordmark: false),
+                  SizedBox(height: 10),
                   Text(
                     'EasyTVET Hub',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.white,
                       fontSize: 18,
@@ -88,6 +178,7 @@ class AppUtilityDrawer extends StatelessWidget {
                   SizedBox(height: 4),
                   Text(
                     'Kenyan TVET Past Papers & CBET Guides',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFFDCD2EA),
                       fontSize: 12,
@@ -157,7 +248,7 @@ class AppUtilityDrawer extends StatelessWidget {
                 border: Border(top: BorderSide(color: AppColors.line)),
               ),
               child: const Text(
-                'easytvethub.com • Student Companion App',
+                'EasyTVET Hub • Student Companion App',
                 style: TextStyle(
                   fontSize: 11.5,
                   color: AppColors.muted,

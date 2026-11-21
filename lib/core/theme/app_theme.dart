@@ -29,7 +29,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0.5,
         surfaceTintColor: Colors.transparent,
-        centerTitle: false,
+        centerTitle: true,
         titleTextStyle: TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w700,
@@ -47,9 +47,10 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             color: isSelected ? AppColors.purple : AppColors.muted,
+            overflow: TextOverflow.ellipsis,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {

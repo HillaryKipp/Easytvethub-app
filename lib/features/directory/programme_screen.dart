@@ -8,12 +8,77 @@ import '../../core/utils/formatters.dart';
 import '../../core/widgets/empty_error_views.dart';
 import '../../core/widgets/faq_accordion.dart';
 import '../../core/widgets/pill_badge.dart';
+import '../../data/models/directory_models.dart';
 import '../../data/repositories/directory_repository.dart';
+
+enum ProgrammeFramework {
+  modular('Modular CDACC', 'modular-cdacc-courses-cycle-3'),
+  nonModular('Non Modular CDACC', 'non-modular-cdacc-courses'),
+  knec('KNEC Courses', 'knec-courses');
+
+  final String fallbackTitle;
+  final String fallbackSlug;
+
+  const ProgrammeFramework(this.fallbackTitle, this.fallbackSlug);
+
+  bool matches(Programme programme) => switch (this) {
+    ProgrammeFramework.modular => programme.isModular,
+    ProgrammeFramework.nonModular => !programme.isModular && !programme.isKnec,
+    ProgrammeFramework.knec => programme.isKnec,
+  };
+}
+
+class FrameworkProgrammeScreen extends ConsumerWidget {
+  final ProgrammeFramework framework;
+
+  const FrameworkProgrammeScreen({super.key, required this.framework});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeAsync = ref.watch(homeDirectoryProvider);
+
+    return homeAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(LucideIcons.menu, size: 22),
+            tooltip: 'Menu',
+            onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
+          ),
+          title: Text(framework.fallbackTitle),
+        ),
+        body: const LoadingSkeletonList(itemCount: 5, itemHeight: 100),
+      ),
+      error: (_, __) => ProgrammeScreen(
+        programmeSlug: framework.fallbackSlug,
+        showDrawerLeading: true,
+      ),
+      data: (data) {
+        Programme? matched;
+        for (final prog in data.programmes) {
+          if (framework.matches(prog)) {
+            matched = prog;
+            break;
+          }
+        }
+        return ProgrammeScreen(
+          programmeSlug: matched?.slug ?? framework.fallbackSlug,
+          showDrawerLeading: true,
+        );
+      },
+    );
+  }
+}
 
 class ProgrammeScreen extends ConsumerStatefulWidget {
   final String programmeSlug;
+  final bool showDrawerLeading;
 
-  const ProgrammeScreen({super.key, required this.programmeSlug});
+  const ProgrammeScreen({
+    super.key,
+    required this.programmeSlug,
+    this.showDrawerLeading = false,
+  });
 
   @override
   ConsumerState<ProgrammeScreen> createState() => _ProgrammeScreenState();
@@ -25,9 +90,17 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncData = ref.watch(programmeDetailProvider(widget.programmeSlug));
+    final canPop = Navigator.of(context).canPop();
 
     return Scaffold(
       appBar: AppBar(
+        leading: widget.showDrawerLeading && !canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.menu, size: 22),
+                tooltip: 'Menu',
+                onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
+              )
+            : null,
         title: Text(
           asyncData.valueOrNull != null
               ? toTitleCase(asyncData.valueOrNull!.programme.name)
@@ -36,7 +109,7 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.search, size: 20),
-            onPressed: () => context.go('/search'),
+            onPressed: () => context.push('/search'),
           ),
         ],
       ),

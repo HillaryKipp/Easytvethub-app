@@ -45,7 +45,7 @@ class _DepartmentScreenState extends ConsumerState<DepartmentScreen> {
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.search, size: 20),
-            onPressed: () => context.go('/search'),
+            onPressed: () => context.push('/search'),
           ),
         ],
       ),

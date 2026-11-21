@@ -16,6 +16,7 @@ import '../../features/search/search_screen.dart';
 import '../widgets/app_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -30,145 +31,140 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return AppShell(navigationShell: navigationShell);
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) {
+          return AppShell(
+            currentLocation: state.uri.path,
+            shellNavigatorKey: _shellNavigatorKey,
+            child: child,
+          );
         },
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/',
-                builder: (context, state) => const HomeScreen(),
-              ),
-            ],
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const HomeScreen(),
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/search',
-                builder: (context, state) => const SearchScreen(),
-              ),
-            ],
+          GoRoute(
+            path: '/tab/modular',
+            builder: (context, state) => const FrameworkProgrammeScreen(
+              framework: ProgrammeFramework.modular,
+            ),
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/blog',
-                builder: (context, state) => const BlogListScreen(),
-              ),
-            ],
+          GoRoute(
+            path: '/tab/non-modular',
+            builder: (context, state) => const FrameworkProgrammeScreen(
+              framework: ProgrammeFramework.nonModular,
+            ),
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/saved',
-                builder: (context, state) => const DownloadsScreen(),
-              ),
-            ],
+          GoRoute(
+            path: '/tab/knec',
+            builder: (context, state) => const FrameworkProgrammeScreen(
+              framework: ProgrammeFramework.knec,
+            ),
+          ),
+          GoRoute(
+            path: '/saved',
+            builder: (context, state) => const DownloadsScreen(),
+          ),
+          GoRoute(
+            path: '/search',
+            builder: (context, state) => const SearchScreen(),
+          ),
+          GoRoute(
+            path: '/blog',
+            builder: (context, state) => const BlogListScreen(),
+          ),
+
+          // Specific static / prefixed deep-link routes (must come before /:programmeSlug)
+          GoRoute(
+            path: '/levels/:levelSlug',
+            builder: (context, state) {
+              final raw = state.pathParameters['levelSlug'] ?? 'level-6';
+              final match = RegExp(r'(\d+)').firstMatch(raw);
+              final level = int.tryParse(match?.group(1) ?? '6') ?? 6;
+              return LevelHubScreen(level: level.clamp(3, 6));
+            },
+          ),
+          GoRoute(
+            path: '/blog/:slug',
+            builder: (context, state) {
+              final slug = state.pathParameters['slug']!;
+              return ArticleScreen(slug: slug);
+            },
+          ),
+          GoRoute(
+            path: '/authors/:slug',
+            builder: (context, state) {
+              final slug = state.pathParameters['slug']!;
+              return AuthorScreen(slug: slug);
+            },
+          ),
+          GoRoute(
+            path: '/info/:pageKey',
+            builder: (context, state) {
+              final pageKey = state.pathParameters['pageKey'] ?? 'about';
+              return InfoScreen(pageKey: pageKey);
+            },
+          ),
+          // Web info path aliases for universal deep linking
+          GoRoute(
+            path: '/about-us',
+            builder: (_, __) => const InfoScreen(pageKey: 'about'),
+          ),
+          GoRoute(
+            path: '/contact-us',
+            builder: (_, __) => const InfoScreen(pageKey: 'contact'),
+          ),
+          GoRoute(
+            path: '/privacy-policy',
+            builder: (_, __) => const InfoScreen(pageKey: 'privacy'),
+          ),
+          GoRoute(
+            path: '/terms-and-conditions',
+            builder: (_, __) => const InfoScreen(pageKey: 'terms'),
+          ),
+
+          // Directory hierarchy routes matching easytvethub.com 1:1
+          GoRoute(
+            path: '/:programmeSlug',
+            builder: (context, state) {
+              return ProgrammeScreen(
+                programmeSlug: state.pathParameters['programmeSlug']!,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/:programmeSlug/:departmentSlug',
+            builder: (context, state) {
+              return DepartmentScreen(
+                programmeSlug: state.pathParameters['programmeSlug']!,
+                departmentSlug: state.pathParameters['departmentSlug']!,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/:programmeSlug/:departmentSlug/:courseSlug',
+            builder: (context, state) {
+              return CourseScreen(
+                programmeSlug: state.pathParameters['programmeSlug']!,
+                departmentSlug: state.pathParameters['departmentSlug']!,
+                courseSlug: state.pathParameters['courseSlug']!,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/:programmeSlug/:departmentSlug/:courseSlug/:unitSlug',
+            builder: (context, state) {
+              return UnitScreen(
+                programmeSlug: state.pathParameters['programmeSlug']!,
+                departmentSlug: state.pathParameters['departmentSlug']!,
+                courseSlug: state.pathParameters['courseSlug']!,
+                unitSlug: state.pathParameters['unitSlug']!,
+              );
+            },
           ),
         ],
-      ),
-
-      // Specific static / prefixed deep-link routes (must come before /:programmeSlug)
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/levels/:levelSlug',
-        builder: (context, state) {
-          final raw = state.pathParameters['levelSlug'] ?? 'level-6';
-          final match = RegExp(r'(\d+)').firstMatch(raw);
-          final level = int.tryParse(match?.group(1) ?? '6') ?? 6;
-          return LevelHubScreen(level: level.clamp(3, 6));
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/blog/:slug',
-        builder: (context, state) {
-          final slug = state.pathParameters['slug']!;
-          return ArticleScreen(slug: slug);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/authors/:slug',
-        builder: (context, state) {
-          final slug = state.pathParameters['slug']!;
-          return AuthorScreen(slug: slug);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/info/:pageKey',
-        builder: (context, state) {
-          final pageKey = state.pathParameters['pageKey'] ?? 'about';
-          return InfoScreen(pageKey: pageKey);
-        },
-      ),
-      // Web info path aliases for universal deep linking
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/about-us',
-        builder: (_, __) => const InfoScreen(pageKey: 'about'),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/contact-us',
-        builder: (_, __) => const InfoScreen(pageKey: 'contact'),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/privacy-policy',
-        builder: (_, __) => const InfoScreen(pageKey: 'privacy'),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/terms-and-conditions',
-        builder: (_, __) => const InfoScreen(pageKey: 'terms'),
-      ),
-
-      // Directory hierarchy routes matching easytvethub.com 1:1
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/:programmeSlug',
-        builder: (context, state) {
-          return ProgrammeScreen(
-            programmeSlug: state.pathParameters['programmeSlug']!,
-          );
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/:programmeSlug/:departmentSlug',
-        builder: (context, state) {
-          return DepartmentScreen(
-            programmeSlug: state.pathParameters['programmeSlug']!,
-            departmentSlug: state.pathParameters['departmentSlug']!,
-          );
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/:programmeSlug/:departmentSlug/:courseSlug',
-        builder: (context, state) {
-          return CourseScreen(
-            programmeSlug: state.pathParameters['programmeSlug']!,
-            departmentSlug: state.pathParameters['departmentSlug']!,
-            courseSlug: state.pathParameters['courseSlug']!,
-          );
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/:programmeSlug/:departmentSlug/:courseSlug/:unitSlug',
-        builder: (context, state) {
-          return UnitScreen(
-            programmeSlug: state.pathParameters['programmeSlug']!,
-            departmentSlug: state.pathParameters['departmentSlug']!,
-            courseSlug: state.pathParameters['courseSlug']!,
-            unitSlug: state.pathParameters['unitSlug']!,
-          );
-        },
       ),
     ],
   );

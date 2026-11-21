@@ -223,7 +223,7 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> {
         message:
             'Bookmark your current courses or revision units to jump back to them quickly.',
         actionLabel: 'Search Courses & Units',
-        onAction: () => context.go('/search'),
+        onAction: () => context.push('/search'),
       );
     }
 

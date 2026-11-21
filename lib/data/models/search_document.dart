@@ -29,6 +29,17 @@ class SearchDocument {
     return p;
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'name': name,
+    if (code != null) 'code': code,
+    if (level != null) 'level': level,
+    'path': path,
+    'breadcrumb': breadcrumb,
+    if (resourceCount != null) 'resourceCount': resourceCount,
+  };
+
   factory SearchDocument.fromJson(Map<String, dynamic> json) => SearchDocument(
         id: json['id'] as String? ?? '',
         type: json['type'] as String? ?? 'unit',

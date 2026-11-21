@@ -25,12 +25,16 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
   Widget build(BuildContext context) {
     final asyncArticles = ref.watch(blogArticlesProvider(_selectedCategory));
 
+    final canPop = Navigator.of(context).canPop();
+
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.menu, size: 22),
-          onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
-        ),
+        leading: canPop
+            ? null
+            : IconButton(
+                icon: const Icon(LucideIcons.menu, size: 22),
+                onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
+              ),
         title: const Text('TVET News & Guides'),
       ),
       body: Column(
@@ -238,32 +242,16 @@ class _FeaturedArticleCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Text(
-                        article.author?.name ?? 'EasyTVET Editorial',
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.purple,
-                        ),
+                  if (article.publishedAt != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      formatDate(article.publishedAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.muted,
                       ),
-                      if (article.publishedAt != null) ...[
-                        const Text(
-                          ' • ',
-                          style: TextStyle(color: AppColors.muted),
-                        ),
-                        Text(
-                          formatDate(article.publishedAt),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.muted,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -360,16 +348,18 @@ class _ArticleListCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 6),
-                    Text(
-                      '${article.author?.name ?? 'EasyTVET Editorial'}${article.publishedAt != null ? ' • ${formatDate(article.publishedAt)}' : ''}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.muted,
+                    if (article.publishedAt != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        formatDate(article.publishedAt),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.muted,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

@@ -56,12 +56,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final indexAsync = ref.watch(searchIndexProvider);
     final repo = ref.watch(searchRepositoryProvider);
 
+    final canPop = Navigator.of(context).canPop();
+
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.menu, size: 22),
-          onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
-        ),
+        leading: canPop
+            ? null
+            : IconButton(
+                icon: const Icon(LucideIcons.menu, size: 22),
+                onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
+              ),
         title: const Text('Search Past Papers'),
         actions: [
           IconButton(

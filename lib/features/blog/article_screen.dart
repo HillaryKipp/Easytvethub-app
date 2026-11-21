@@ -12,7 +12,6 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/empty_error_views.dart';
 import '../../core/widgets/pill_badge.dart';
-import '../../data/models/blog_models.dart';
 import '../../data/repositories/blog_repository.dart';
 
 class _TocEntry {
@@ -270,45 +269,14 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 14),
-                      // Author Byline
-                      InkWell(
-                        borderRadius: BorderRadius.circular(AppRadii.md),
-                        onTap: article.author != null
-                            ? () => context.push(
-                                '/authors/${article.author!.slug}',
-                              )
-                            : null,
-                        child: Row(
-                          children: [
-                            _AuthorAvatar(author: article.author, radius: 18),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    article.author?.name ??
-                                        'EasyTVET Editorial',
-                                    style: const TextStyle(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.ink,
-                                    ),
-                                  ),
-                                  Text(
-                                    article.publishedAt != null
-                                        ? 'Published ${formatDate(article.publishedAt)}'
-                                        : 'Updated ${formatDate(article.updatedAt)}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.muted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 12),
+                      Text(
+                        article.publishedAt != null
+                            ? 'Published ${formatDate(article.publishedAt)}'
+                            : 'Updated ${formatDate(article.updatedAt)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
                         ),
                       ),
                     ],
@@ -492,136 +460,11 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
                   ),
                 ],
 
-                // Author Profile Card
-                if (article.author != null) ...[
-                  const SizedBox(height: 14),
-                  _AuthorProfileCard(author: article.author!),
-                ],
               ],
             ),
           ),
         );
       },
-    );
-  }
-}
-
-class _AuthorAvatar extends StatelessWidget {
-  final Author? author;
-  final double radius;
-
-  const _AuthorAvatar({required this.author, this.radius = 22});
-
-  @override
-  Widget build(BuildContext context) {
-    final url = author?.avatarUrl;
-    if (url != null && url.isNotEmpty) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: AppColors.purpleTint,
-        backgroundImage: CachedNetworkImageProvider(url),
-      );
-    }
-    final initial = (author?.name ?? 'E').trim().isNotEmpty
-        ? (author?.name ?? 'E').trim()[0].toUpperCase()
-        : 'E';
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: AppColors.purpleTint,
-      child: Text(
-        initial,
-        style: TextStyle(
-          fontSize: radius * 0.85,
-          fontWeight: FontWeight.w800,
-          color: AppColors.purple,
-        ),
-      ),
-    );
-  }
-}
-
-class _AuthorProfileCard extends StatelessWidget {
-  final Author author;
-  const _AuthorProfileCard({required this.author});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadii.xxl),
-        border: Border.all(color: AppColors.line),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.xxl),
-        onTap: () => context.push('/authors/${author.slug}'),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _AuthorAvatar(author: author, radius: 24),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          author.name,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                          ),
-                        ),
-                      ),
-                      if (author.isVerified) ...[
-                        const SizedBox(width: 5),
-                        const Icon(
-                          LucideIcons.badgeCheck,
-                          size: 16,
-                          color: AppColors.purple,
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (author.role != null && author.role!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      author.role!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.purple,
-                      ),
-                    ),
-                  ],
-                  if (author.bio != null && author.bio!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      author.bio!,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  const Text(
-                    'View all articles by this author →',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.purple,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

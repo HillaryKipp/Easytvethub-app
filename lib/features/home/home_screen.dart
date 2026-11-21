@@ -75,7 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             tooltip: 'Search Past Papers',
-            onPressed: () => context.go('/search'),
+            onPressed: () => context.push('/search'),
           ),
           const SizedBox(width: 8),
         ],
@@ -98,7 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               _HeroLevelBanner(
                 onLevelTap: (lvl) => context.push('/levels/level-$lvl'),
-                onSearchTap: () => context.go('/search'),
+                onSearchTap: () => context.push('/search'),
               ),
               const SizedBox(height: 18),
               _ServiceCardsGrid(programmes: data.programmes),
@@ -130,85 +130,72 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.purpleTint,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
+          SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Academic Departments',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                child: const Icon(
-                  LucideIcons.building2,
-                  size: 18,
-                  color: AppColors.purple,
+                const SizedBox(height: 2),
+                Text(
+                  'Browse CDACC & KNEC courses by department',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Academic Departments',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      'Browse CDACC & KNEC courses by department',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 14),
-          // Segmented filter tabs inside #F7F5FA pill tray
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              border: Border.all(color: AppColors.line),
-            ),
-            child: SingleChildScrollView(
+          // Horizontal slider for department framework filters
+          SizedBox(
+            height: 38,
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _HomeDeptFilter.values.map((filter) {
-                  final active = _deptFilter == filter;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: InkWell(
+              physics: const ClampingScrollPhysics(),
+              itemCount: _HomeDeptFilter.values.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final filter = _HomeDeptFilter.values[index];
+                final active = _deptFilter == filter;
+                return InkWell(
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                  onTap: () {
+                    setState(() {
+                      _deptFilter = filter;
+                      _expandedDeptKeys.clear();
+                    });
+                    Scrollable.ensureVisible(
+                      context,
+                      duration: const Duration(milliseconds: 200),
+                      alignment: 0.5,
+                    );
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: active ? AppColors.purple : AppColors.surface,
                       borderRadius: BorderRadius.circular(AppRadii.pill),
-                      onTap: () {
-                        setState(() {
-                          _deptFilter = filter;
-                          _expandedDeptKeys.clear();
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 160),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: active ? AppColors.purple : Colors.transparent,
-                          borderRadius: BorderRadius.circular(AppRadii.pill),
-                        ),
-                        child: Text(
-                          filter.label,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: active ? AppColors.white : AppColors.text,
-                          ),
-                        ),
+                      border: Border.all(
+                        color: active ? AppColors.purple : AppColors.line,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                    child: Text(
+                      filter.label,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: active ? AppColors.white : AppColors.text,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 14),
@@ -515,86 +502,52 @@ class _HeroLevelBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const levels = [3, 4, 5, 6];
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: AppColors.heroGradient,
         borderRadius: BorderRadius.circular(AppRadii.xl),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
-            ),
-            child: const Text(
-              'KENYA TVET • CDACC & KNEC PORTAL',
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Access CDACC & KNEC Past Papers Offline',
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.4,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Jump straight to your KNQF qualification level or search across all TVET courses and units.',
-            style: TextStyle(
-              color: Color(0xFFE3D8F1),
-              fontSize: 13,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [3, 4, 5, 6].map((level) {
-              return InkWell(
-                borderRadius: BorderRadius.circular(AppRadii.pill),
-                onTap: () => onLevelTap(level),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+          Row(
+            children: [
+              for (int i = 0; i < levels.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadii.pill),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Text(
-                    'Level $level',
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
+                    onTap: () => onLevelTap(levels[i]),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Text(
+                        'Level ${levels[i]}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              );
-            }).toList(),
+              ],
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -609,7 +562,7 @@ class _HeroLevelBanner extends StatelessWidget {
               ),
               icon: const Icon(LucideIcons.search, size: 17),
               label: const Text(
-                'Search All Resources',
+                'Search',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),
@@ -644,8 +597,6 @@ class _ServiceCardsGrid extends StatelessWidget {
         description: 'Cycle 3 CBET modular courses, tools & past papers.',
         cta: 'Explore Cycle 3',
         accent: AppColors.purple,
-        tint: AppColors.purpleTint,
-        icon: LucideIcons.layers,
         onTap: () {
           final slug = modularProg?.slug ?? 'modular-cdacc-courses-cycle-3';
           context.push('/$slug');
@@ -656,8 +607,6 @@ class _ServiceCardsGrid extends StatelessWidget {
         description: 'Non-modular CBET curricula & assessment guides.',
         cta: 'Explore Cycle 1 & 2',
         accent: AppColors.teal,
-        tint: AppColors.tealTint,
-        icon: LucideIcons.bookMarked,
         onTap: () {
           final slug = nonModularProg?.slug ?? 'non-modular-cdacc-courses';
           context.push('/$slug');
@@ -668,8 +617,6 @@ class _ServiceCardsGrid extends StatelessWidget {
         description: 'Diploma, Certificate & Artisan KNEC past papers.',
         cta: 'Explore KNEC',
         accent: AppColors.amber,
-        tint: AppColors.amberBadgeTint,
-        icon: LucideIcons.award,
         onTap: () {
           final slug = knecProg?.slug ?? 'knec-courses';
           context.push('/$slug');
@@ -680,9 +627,7 @@ class _ServiceCardsGrid extends StatelessWidget {
         description: 'Exam dates, circulars & CBET revision strategies.',
         cta: 'Read Latest News',
         accent: AppColors.red,
-        tint: AppColors.redTint,
-        icon: LucideIcons.newspaper,
-        onTap: () => context.go('/blog'),
+        onTap: () => context.push('/blog'),
       ),
     ];
 
@@ -694,7 +639,7 @@ class _ServiceCardsGrid extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.94,
+        childAspectRatio: 1.22,
       ),
       itemBuilder: (context, index) => _ServiceCard(item: cards[index]),
     );
@@ -706,8 +651,6 @@ class _ServiceCardItem {
   final String description;
   final String cta;
   final Color accent;
-  final Color tint;
-  final IconData icon;
   final VoidCallback onTap;
 
   const _ServiceCardItem({
@@ -715,8 +658,6 @@ class _ServiceCardItem {
     required this.description,
     required this.cta,
     required this.accent,
-    required this.tint,
-    required this.icon,
     required this.onTap,
   });
 }
@@ -742,15 +683,6 @@ class _ServiceCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: item.tint,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                ),
-                child: Icon(item.icon, size: 20, color: item.accent),
-              ),
-              const SizedBox(height: 10),
               Text(
                 item.title,
                 textAlign: TextAlign.center,
@@ -762,7 +694,7 @@ class _ServiceCard extends StatelessWidget {
                   color: AppColors.ink,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Expanded(
                 child: Text(
                   item.description,
@@ -776,25 +708,17 @@ class _ServiceCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Divider(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      item.cta,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: item.accent,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(LucideIcons.arrowRight, size: 13, color: item.accent),
-                ],
+              const Divider(height: 14),
+              Text(
+                item.cta,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: item.accent,
+                ),
               ),
             ],
           ),
@@ -811,165 +735,126 @@ class _LatestArticlesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Latest Articles & Circulars',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            TextButton(
-              onPressed: () => context.go('/blog'),
-              child: const Text(
-                'View All →',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.purple,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 292,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: articles.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final article = articles[index];
-              final mins = estimateReadingTimeMinutes(
-                article.content,
-                explicitMinutes: article.readingTimeMinutes,
-              );
+    final visibleArticles = articles.take(3).toList();
 
-              return SizedBox(
-                width: 268,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                    border: Border.all(color: AppColors.line),
-                    boxShadow: AppColors.cardShadow,
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                    onTap: () => context.push('/blog/${article.slug}'),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(AppRadii.lg),
-                          ),
-                          child: AspectRatio(
-                            aspectRatio: 16 / 10,
-                            child: article.coverImageUrl != null &&
-                                    article.coverImageUrl!.isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: article.coverImageUrl!,
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, __) => Container(
-                                      color: AppColors.purpleTint,
-                                    ),
-                                    errorWidget: (_, __, ___) =>
-                                        _ArticleImageFallback(),
-                                  )
-                                : _ArticleImageFallback(),
-                          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Latest Articles & Circulars',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 10),
+        ...visibleArticles.asMap().entries.map((entry) {
+          final index = entry.key;
+          final article = entry.value;
+          final mins = estimateReadingTimeMinutes(
+            article.content,
+            explicitMinutes: article.readingTimeMinutes,
+          );
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == visibleArticles.length - 1 ? 0 : 8,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+                border: Border.all(color: AppColors.line),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+                onTap: () => context.push('/blog/${article.slug}'),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(AppRadii.md),
+                        child: SizedBox(
+                          width: 72,
+                          height: 64,
+                          child: article.coverImageUrl != null &&
+                                  article.coverImageUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: article.coverImageUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    color: AppColors.purpleTint,
+                                  ),
+                                  errorWidget: (_, __, ___) =>
+                                      _ArticleImageFallback(),
+                                )
+                              : _ArticleImageFallback(),
                         ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
                               children: [
-                                Row(
-                                  children: [
-                                    PillBadge.forCategory(article.category),
-                                    const Spacer(),
-                                    Text(
-                                      '$mins min read',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.muted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  article.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.ink,
-                                    height: 1.3,
-                                  ),
-                                ),
-                                if (article.excerpt != null &&
-                                    article.excerpt!.isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    article.excerpt!,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      color: AppColors.text,
-                                      height: 1.35,
-                                    ),
-                                  ),
-                                ],
+                                PillBadge.forCategory(article.category),
                                 const Spacer(),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.user,
-                                      size: 12,
-                                      color: AppColors.muted,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        article.author?.name ??
-                                            'EasyTVET Editorial',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.muted,
-                                        ),
-                                      ),
-                                    ),
-                                    if (article.publishedAt != null)
-                                      Text(
-                                        formatDate(article.publishedAt),
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.muted,
-                                        ),
-                                      ),
-                                  ],
+                                Text(
+                                  '$mins min',
+                                  style: const TextStyle(
+                                    fontSize: 10.5,
+                                    color: AppColors.muted,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
+                            const SizedBox(height: 4),
+                            Text(
+                              article.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                                height: 1.25,
+                              ),
+                            ),
+                            if (article.publishedAt != null) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                formatDate(article.publishedAt),
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 6),
+        Center(
+          child: TextButton(
+            onPressed: () => context.push('/blog'),
+            child: const Text(
+              'View All Articles →',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.purple,
+              ),
+            ),
           ),
         ),
       ],
